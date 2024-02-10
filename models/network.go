@@ -22,7 +22,7 @@ func (this *Network) anyOverlaps(checkRange IPRange) bool {
 	return false
 }
 
-func (this *Network) GetNextAvailableSubnet(id string, mask uint32) Subnet {
+func (this *Network) GetNextAvailableSubnet(mask uint32) Subnet {
 	requestedSize := uint64(math.Pow(2, 32.0-float64(mask)))
 
 	checkRange := IPRange{
@@ -38,7 +38,6 @@ func (this *Network) GetNextAvailableSubnet(id string, mask uint32) Subnet {
 
 	// to get this far we either found a free space or we have got to the end of our address space and there is no free subnet
 	subnet := Subnet{
-		ID: id,
 		CIDR: IPRange{
 			StartAddress: checkRange.StartAddress,
 			EndAddress:   checkRange.EndAddress,
