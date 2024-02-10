@@ -14,15 +14,15 @@ import (
 )
 
 type NetworkController struct {
-	networks *services.NetworkService
+	networkService *services.NetworkService
 }
 
 func NewNetworkController(store storage.Storage) *NetworkController {
 	networkService := services.NewNetworkService(store)
-	return &NetworkController{networks: networkService}
+	return &NetworkController{networkService: networkService}
 }
 
-func (controller *NetworkController) NetworkController(w http.ResponseWriter, r *http.Request) {
+func (this *NetworkController) NetworkController(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Method, "NetworkController.NetworkController")
 
 	w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -31,28 +31,29 @@ func (controller *NetworkController) NetworkController(w http.ResponseWriter, r 
 
 	switch r.Method {
 	case "GET":
+		fmt.Println(r.URL.Path)
 		if path.Base(r.URL.Path) == "networks" {
-			controller.getAllTheNetworks(w, r)
+			this.getAllTheNetworks(w, r)
 		} else {
-			controller.getNetwork(w, r)
+			this.getNetwork(w, r)
 		}
 	case "POST":
-		controller.createNetwork(w, r)
+		this.createNetwork(w, r)
 	case "PUT":
-		controller.updateNetwork(w, r)
+		this.updateNetwork(w, r)
 	case "DELETE":
-		controller.deleteNetwork(w, r)
+		this.deleteNetwork(w, r)
 	case "OPTIONS":
-		controller.returnOptions(w, r)
+		this.returnOptions(w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (controller *NetworkController) getAllTheNetworks(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CommentController.getAllTheComments")
+func (this *NetworkController) getAllTheNetworks(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("CommentController.getAllTheNetworks")
 
-	body, err := json.Marshal(controller.networks.GetAllNetworks())
+	body, err := json.Marshal(this.networkService.GetAllNetworks())
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -63,7 +64,7 @@ func (controller *NetworkController) getAllTheNetworks(w http.ResponseWriter, r 
 	}
 }
 
-func (controller *NetworkController) getNetwork(w http.ResponseWriter, r *http.Request) {
+func (this *NetworkController) getNetwork(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.getNetwork")
 
 	num, err := strconv.Atoi(path.Base(r.URL.Path))
@@ -72,7 +73,7 @@ func (controller *NetworkController) getNetwork(w http.ResponseWriter, r *http.R
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
-		network := controller.networks.GetNetwork(num)
+		network := this.networkService.GetNetwork(num)
 		if network == nil {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
@@ -89,7 +90,7 @@ func (controller *NetworkController) getNetwork(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (controller *NetworkController) createNetwork(w http.ResponseWriter, r *http.Request) {
+func (this *NetworkController) createNetwork(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.createNetwork")
 	// deserialize the request body into a new network
 	requestBody, err := ioutil.ReadAll(r.Body)
@@ -100,12 +101,12 @@ func (controller *NetworkController) createNetwork(w http.ResponseWriter, r *htt
 	json.Unmarshal(requestBody, &network)
 
 	// find the last network
-	names := controller.networks.ListNetworks()
-	lastComment := len(names)
-	network.ID = lastComment + 1
+	names := this.networkService.ListNetworks()
+	lastId := len(names)
+	network.ID = lastId + 1
 
 	// ask the network service to create the network
-	controller.networks.CreateNetwork(network)
+	this.networkService.CreateNetwork(network)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -124,22 +125,22 @@ func (controller *NetworkController) updateNetwork(w http.ResponseWriter, r *htt
 	var network models.Network
 	json.Unmarshal(requestBody, &network)
 
-	controller.networks.UpdateNetwork(network)
+	controller.networkService.UpdateNetwork(network)
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (controller *NetworkController) deleteNetwork(w http.ResponseWriter, r *http.Request) {
+func (this *NetworkController) deleteNetwork(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.deleteNetwork")
 
 	id, _ := strconv.Atoi(path.Base(r.URL.Path))
 
-	controller.networks.DeleteNetwork(id)
+	this.networkService.DeleteNetwork(id)
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (controller *NetworkController) returnOptions(w http.ResponseWriter, r *http.Request) {
+func (this *NetworkController) returnOptions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.returnOptions")
 
 	w.WriteHeader(http.StatusOK)

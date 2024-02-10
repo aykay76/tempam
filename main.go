@@ -39,29 +39,20 @@ type IPAM struct {
 }
 
 func main() {
+	// add some things to dependency injection container
 	container := dig.New()
 	container.Provide(storage.LocalStorage)
 	container.Provide(controllers.NewNetworkController)
 
+	// create a new router
 	router := mux.NewRouter()
-
-	// ipam.Subnets = append(ipam.Subnets, Subnet{
-	// 	ID:   "test",
-	// 	CIDR: "172.16.0.0/22",
-	// 	IPs: []IPAddress{
-	// 		{
-	// 			Address: "172.16.0.4",
-	// 		},
-	// 		{
-	// 			Address: "172.16.0.5",
-	// 		},
-	// 	},
-	// })
 
 	// add routes for networks - top level object that represents a virtual network/VPC
 	container.Invoke(func(controller *controllers.NetworkController) {
 		router.HandleFunc("/api/networks", controller.NetworkController).Methods("GET")
+		router.HandleFunc("/api/networks/{id}", controller.NetworkController).Methods("GET")
 		router.HandleFunc("/api/networks", controller.NetworkController).Methods("POST")
+		router.HandleFunc("/api/networks/{id}", controller.NetworkController).Methods("DELETE")
 	})
 
 	// TODO: add routes for subnets
