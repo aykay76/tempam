@@ -16,15 +16,16 @@ func NewSubnetService(store storage.Storage) *SubnetService {
 	return &SubnetService{store: store}
 }
 
-func (s *SubnetService) CreateSubnet(subnet models.Subnet) {
-	// subnet.CreatedAt = time.Now().String()
-	// subnet.UpdatedAt = time.Now().String()
+func (s *SubnetService) CreateSubnet(subnet models.Subnet) models.Subnet {
+	// given the network ID search for space for the requested subnet
 
 	bytes, err := json.Marshal(subnet)
 	if err != nil {
 		fmt.Println(err)
 	}
 	s.store.StoreBlob(fmt.Sprint("subnet-", subnet.ID, ".json"), bytes)
+
+	return models.Subnet{}
 }
 
 func (s *SubnetService) ListSubnets() []string {

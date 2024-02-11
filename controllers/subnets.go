@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"strconv"
@@ -12,19 +11,24 @@ import (
 	"github.com/aykay76/tempam/models"
 	"github.com/aykay76/tempam/services"
 	"github.com/aykay76/tempam/storage"
+	"github.com/gorilla/mux"
 )
 
 type SubnetController struct {
-	subnetService *services.SubnetService
+	networkService *services.NetworkService
+	subnetService  *services.SubnetService
 }
 
 func NewSubnetController(store storage.Storage) *SubnetController {
+	networkService := services.NewNetworkService(store)
 	subnetService := services.NewSubnetService(store)
-	return &SubnetController{subnetService: subnetService}
+	return &SubnetController{networkService: networkService, subnetService: subnetService}
 }
 
 func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Method, "SubnetController.SubnetController")
+
+	fmt.Println(r.URL.Path)
 
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -32,7 +36,6 @@ func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Re
 
 	switch r.Method {
 	case "GET":
-		fmt.Println(r.URL.Path)
 		if path.Base(r.URL.Path) == "subnets" {
 			this.getAllTheSubnets(w, r)
 		} else {
@@ -93,25 +96,36 @@ func (this *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) 
 
 func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.createSubnet")
+
+	// get the request variables for the network ID
+	vars := mux.Vars(r)
+	fmt.Println(vars)
+
 	// deserialize the request body into a new subnet
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-	var subnet models.Subnet
-	json.Unmarshal(requestBody, &subnet)
+	var subnetRequest models.SubnetRequest
+	json.Unmarshal(requestBody, &subnetRequest)
 
-	// find the last subnet
-	names := this.subnetService.ListSubnets()
-	lastId := len(names)
-	subnet.ID = lastId + 1
-
-	// ask the subnet service to create the subnet
-	this.subnetService.CreateSubnet(subnet)
+	// ask the network service to create a subnet on our behalf
+	networkId, err := strconv.Atoi(vars["networkId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(requestBody)
+	}
+	subnet := this.networkService.CreateSubnet(networkId, subnetRequest)
+	if subnet == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
-
-	w.Write(requestBody)
+	responseBody, err := json.Marshal(subnet)
+	if err != nil {
+		w.Write(responseBody)
+	}
 
 	fmt.Println("Created subnet")
 }
@@ -119,7 +133,7 @@ func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Reques
 func (controller *SubnetController) updateSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.updateSubnet")
 
-	requestBody, err := ioutil.ReadAll(r.Body)
+	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
 	}

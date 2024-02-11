@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path"
 	"strconv"
@@ -11,6 +11,7 @@ import (
 	"github.com/aykay76/tempam/models"
 	"github.com/aykay76/tempam/services"
 	"github.com/aykay76/tempam/storage"
+	"github.com/gorilla/mux"
 )
 
 type NetworkController struct {
@@ -24,6 +25,9 @@ func NewNetworkController(store storage.Storage) *NetworkController {
 
 func (this *NetworkController) NetworkController(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Method, "NetworkController.NetworkController")
+
+	vars := mux.Vars(r)
+	fmt.Println(vars)
 
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -92,40 +96,39 @@ func (this *NetworkController) getNetwork(w http.ResponseWriter, r *http.Request
 
 func (this *NetworkController) createNetwork(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.createNetwork")
+
 	// deserialize the request body into a new network
-	requestBody, err := ioutil.ReadAll(r.Body)
+	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-	var network models.Network
-	json.Unmarshal(requestBody, &network)
-
-	// find the last network
-	names := this.networkService.ListNetworks()
-	lastId := len(names)
-	network.ID = lastId + 1
+	var networkRequest models.NetworkRequest
+	json.Unmarshal(requestBody, &networkRequest)
 
 	// ask the network service to create the network
-	this.networkService.CreateNetwork(network)
+	network := this.networkService.CreateNetwork(networkRequest)
+	if network == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
+	// if we got this far we can report success
 	w.WriteHeader(http.StatusCreated)
-
 	w.Write(requestBody)
-
 	fmt.Println("Created network")
 }
 
 func (controller *NetworkController) updateNetwork(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("NetworkController.updateNetwork")
 
-	requestBody, err := ioutil.ReadAll(r.Body)
+	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
 	var network models.Network
 	json.Unmarshal(requestBody, &network)
 
-	controller.networkService.UpdateNetwork(network)
+	controller.networkService.UpdateNetwork(&network)
 
 	w.WriteHeader(http.StatusOK)
 }
