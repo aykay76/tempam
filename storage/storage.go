@@ -1,9 +1,9 @@
 package storage
 
 type Storage interface {
-	StoreBlob(name string, content []byte) error
-	ListBlobs(pattern string) ([]string, error)
-	GetAllBlobs(pattern string) ([][]byte, error)
-	GetBlob(name string) ([]byte, error)
-	DeleteBlob(name string) error
+	StoreBlob(collectionName string, blobName string, content interface{}) error
+	ListBlobs(collectionName string, pattern string) ([]string, error)
+	GetAllBlobs(collectionName string, pattern string) ([][]byte, error)
+	GetBlob(collectionName string, blobName string) ([]byte, error)
+	DeleteBlob(collectionName string, blobName string) error
 }

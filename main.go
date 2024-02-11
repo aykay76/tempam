@@ -13,7 +13,7 @@ import (
 func main() {
 	// add some things to dependency injection container
 	container := dig.New()
-	container.Provide(storage.LocalStorage)
+	container.Provide(storage.MongoStorage)
 	container.Provide(controllers.NewNetworkController)
 	container.Provide(controllers.NewSubnetController)
 
@@ -27,7 +27,8 @@ func main() {
 	})
 
 	container.Invoke(func(controller *controllers.SubnetController) {
-		router.HandleFunc("/api/networks/{networkId}/subnets", controller.SubnetController).Methods("POST")
+		router.HandleFunc("/api/networks/{networkId}/subnets", controller.SubnetController).Methods("POST", "GET")
+		router.HandleFunc("/api/networks/{networkId}/subnets/{subnetId}", controller.SubnetController).Methods("GET", "DELETE")
 	})
 
 	port := 8080

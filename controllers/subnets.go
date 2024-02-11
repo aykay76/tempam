@@ -16,13 +16,11 @@ import (
 
 type SubnetController struct {
 	networkService *services.NetworkService
-	subnetService  *services.SubnetService
 }
 
 func NewSubnetController(store storage.Storage) *SubnetController {
 	networkService := services.NewNetworkService(store)
-	subnetService := services.NewSubnetService(store)
-	return &SubnetController{networkService: networkService, subnetService: subnetService}
+	return &SubnetController{networkService: networkService}
 }
 
 func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +41,8 @@ func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Re
 		}
 	case "POST":
 		this.createSubnet(w, r)
-	case "PUT":
-		this.updateSubnet(w, r)
+	// case "PUT":
+	// 	this.updateSubnet(w, r)
 	case "DELETE":
 		this.deleteSubnet(w, r)
 	case "OPTIONS":
@@ -57,7 +55,17 @@ func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Re
 func (this *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("CommentController.getAllTheSubnets")
 
-	body, err := json.Marshal(this.subnetService.GetAllSubnets())
+	// get the request variables for the network ID
+	vars := mux.Vars(r)
+	fmt.Println(vars)
+
+	networkId, err := strconv.Atoi(vars["networkId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	subnets := this.networkService.GetAllSubnets(networkId)
+	body, err := json.Marshal(subnets)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -71,13 +79,26 @@ func (this *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Re
 func (this *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.getSubnet")
 
-	num, err := strconv.Atoi(path.Base(r.URL.Path))
+	// get the request variables for the network ID
+	vars := mux.Vars(r)
+	fmt.Println(vars)
+
+	networkId, err := strconv.Atoi(vars["networkId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	subnetId, err := strconv.Atoi(vars["subnetId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
-		subnet := this.subnetService.GetSubnet(num)
+		subnet := this.networkService.GetSubnet(networkId, subnetId)
 		if subnet == nil {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
@@ -130,27 +151,44 @@ func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Reques
 	fmt.Println("Created subnet")
 }
 
-func (controller *SubnetController) updateSubnet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SubnetController.updateSubnet")
+// func (controller *SubnetController) updateSubnet(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Println("SubnetController.updateSubnet")
 
-	requestBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-	var subnet models.Subnet
-	json.Unmarshal(requestBody, &subnet)
+// 	requestBody, err := io.ReadAll(r.Body)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	var subnet models.Subnet
+// 	json.Unmarshal(requestBody, &subnet)
 
-	controller.subnetService.UpdateSubnet(subnet)
+// 	controller.subnetService.UpdateSubnet(subnet)
 
-	w.WriteHeader(http.StatusOK)
-}
+// 	w.WriteHeader(http.StatusOK)
+// }
 
 func (this *SubnetController) deleteSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.deleteSubnet")
 
-	id, _ := strconv.Atoi(path.Base(r.URL.Path))
+	// get the request variables for the network ID
+	vars := mux.Vars(r)
+	fmt.Println(vars)
 
-	this.subnetService.DeleteSubnet(id)
+	// ask the network service to create a subnet on our behalf
+	networkId, err := strconv.Atoi(vars["networkId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	subnetId, err := strconv.Atoi(vars["subnetId"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	subnet := this.networkService.DeleteSubnet(networkId, subnetId)
+	if subnet == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

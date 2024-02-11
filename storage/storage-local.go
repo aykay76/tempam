@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,11 +14,12 @@ func LocalStorage() Storage {
 	return &localStorage{}
 }
 
-func (s *localStorage) StoreBlob(name string, content []byte) error {
-	return os.WriteFile(name, content, 0644)
+func (s *localStorage) StoreBlob(collectionName string, name string, content interface{}) error {
+	bytes, _ := json.Marshal(content)
+	return os.WriteFile(name, bytes, 0644)
 }
 
-func (s *localStorage) ListBlobs(pattern string) ([]string, error) {
+func (s *localStorage) ListBlobs(collectionName string, pattern string) ([]string, error) {
 	matches, err := filepath.Glob(pattern)
 	if err != nil || len(matches) == 0 {
 		return nil, err
@@ -26,11 +28,11 @@ func (s *localStorage) ListBlobs(pattern string) ([]string, error) {
 	return matches, nil
 }
 
-func (s *localStorage) GetBlob(name string) ([]byte, error) {
+func (s *localStorage) GetBlob(collectionName string, name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-func (s *localStorage) GetAllBlobs(pattern string) ([][]byte, error) {
+func (s *localStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
 	matches, err := filepath.Glob(pattern)
 	if err != nil || len(matches) == 0 {
 		return nil, err
@@ -49,7 +51,7 @@ func (s *localStorage) GetAllBlobs(pattern string) ([][]byte, error) {
 	return blobs, nil
 }
 
-func (s *localStorage) DeleteBlob(name string) error {
+func (s *localStorage) DeleteBlob(collectionName string, name string) error {
 	fmt.Println("Deleting blob: " + name)
 	err := os.Remove(name)
 	return err
