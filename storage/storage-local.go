@@ -32,23 +32,24 @@ func (s *localStorage) GetBlob(collectionName string, name string) ([]byte, erro
 	return os.ReadFile(name)
 }
 
-func (s *localStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
-	matches, err := filepath.Glob(pattern)
+func (s *localStorage) GetAllBlobs(collectionName string, filter interface{}, results interface{}) error {
+	matches, err := filepath.Glob(filter.(string))
 	if err != nil || len(matches) == 0 {
-		return nil, err
+		return err
 	}
 
 	var blobs [][]byte
+	blobs = results.([][]byte)
 
 	for _, match := range matches {
 		blob, err := os.ReadFile(match)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		blobs = append(blobs, blob)
 	}
 
-	return blobs, nil
+	return nil
 }
 
 func (s *localStorage) DeleteBlob(collectionName string, name string) error {

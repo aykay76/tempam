@@ -8,14 +8,14 @@ import (
 
 // A Network is a top level network with a collection of subnets
 type Network struct {
-	Name         string            `json:"name"`
-	ID           int               `json:"id"`
-	AddressSpace IPRange           `json:"range"`
-	CIDR         string            `json:"cidr"`
-	Subnets      []*Subnet         `json:"subnets"`
-	Tags         map[string]string `json:"tags"`
-	CreatedAt    time.Time         `json:"createdAt"`
-	UpdatedAt    time.Time         `json:"updatedAt"`
+	Name         string            `json:"name,omitempty" bson:"name,omitempty"`
+	ID           int               `json:"id,omitempty" bson:"id,omitempty"`
+	AddressSpace IPRange           `json:"range,omitempty" bson:"range,omitempty"`
+	CIDR         string            `json:"cidr,omitempty" bson:"cidr,omitempty"`
+	Subnets      []*Subnet         `json:"subnets,omitempty" bson:"subnets,omitempty"`
+	Tags         map[string]string `json:"tags,omitempty" bson:"tags,omitempty"`
+	CreatedAt    time.Time         `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	UpdatedAt    time.Time         `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
 }
 
 func (network *Network) anyOverlaps(checkRange IPRange) bool {

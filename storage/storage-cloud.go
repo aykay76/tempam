@@ -18,8 +18,8 @@ func (s *cloudStorage) GetBlob(collectionName string, name string) ([]byte, erro
 	return nil, nil
 }
 
-func (s *cloudStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
-	return nil, nil
+func (s *cloudStorage) GetAllBlobs(collectionName string, filter interface{}, results interface{}) error {
+	return nil
 }
 
 func (s *cloudStorage) DeleteBlob(collectionName string, name string) error {
