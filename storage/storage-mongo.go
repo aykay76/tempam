@@ -31,8 +31,8 @@ func MongoStorage() Storage {
 	}
 }
 
-func (this *mongoStorage) StoreBlob(collectionName string, name string, content interface{}) error {
-	collection := this.database.Collection(collectionName)
+func (storage *mongoStorage) StoreBlob(collectionName string, name string, content interface{}) error {
+	collection := storage.database.Collection(collectionName)
 
 	// filter := bson.D{{"name", name}}
 	result, err := collection.InsertOne(context.Background(), content)
@@ -45,18 +45,22 @@ func (this *mongoStorage) StoreBlob(collectionName string, name string, content 
 	return nil
 }
 
-func (this *mongoStorage) ListBlobs(collectionName string, pattern string) ([]string, error) {
+func (storage *mongoStorage) ListBlobs(collectionName string, pattern string) ([]string, error) {
+	// TODO: finish this
 	return nil, nil
 }
 
-func (this *mongoStorage) GetBlob(collectionName string, name string) ([]byte, error) {
+func (storage *mongoStorage) GetBlob(collectionName string, name string) ([]byte, error) {
+	// TODO: finish this
 	return nil, nil
 }
 
-func (this *mongoStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
+func (storage *mongoStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
+	// TODO: finish this
 	return nil, nil
 }
 
-func (this *mongoStorage) DeleteBlob(collectionName string, name string) error {
+func (storage *mongoStorage) DeleteBlob(collectionName string, name string) error {
+	// TODO: finish this
 	return nil
 }
