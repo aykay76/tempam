@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,8 +15,8 @@ type mongoStorage struct {
 }
 
 func MongoStorage() Storage {
-	// uri := os.Getenv("MONGO_CONNECTION_URI")
-	uri := "mongodb://localhost:27017"
+	uri := os.Getenv("MONGO_CONNECTION_URI")
+	fmt.Println(uri)
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(context.TODO(), opts)
@@ -55,9 +56,21 @@ func (storage *mongoStorage) GetBlob(collectionName string, name string) ([]byte
 	return nil, nil
 }
 
-func (storage *mongoStorage) GetAllBlobs(collectionName string, pattern string) ([][]byte, error) {
-	// TODO: finish this
-	return nil, nil
+func (storage *mongoStorage) GetAllBlobs(collectionName string, filter interface{}, results interface{}) error {
+	collection := storage.database.Collection(collectionName)
+	cursor, err := collection.Find(context.Background(), filter, nil)
+	if err != nil {
+		return err
+	}
+
+	defer cursor.Close(context.Background())
+
+	err = cursor.All(context.Background(), results)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (storage *mongoStorage) DeleteBlob(collectionName string, name string) error {

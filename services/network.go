@@ -86,18 +86,13 @@ func (service *NetworkService) ListNetworks() []string {
 }
 
 func (service *NetworkService) GetAllNetworks() []models.Network {
-	blobs, err := service.store.GetAllBlobs("networks", "network-*.json")
+	var filter models.Network
+	var networks []models.Network
+
+	err := service.store.GetAllBlobs("networks", filter, &networks)
 	if err != nil {
 		fmt.Println(err)
 		return nil
-	}
-
-	var networks []models.Network
-
-	for _, blob := range blobs {
-		var network models.Network
-		json.Unmarshal(blob, &network)
-		networks = append(networks, network)
 	}
 
 	return networks
