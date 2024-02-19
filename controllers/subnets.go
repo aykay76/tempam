@@ -23,7 +23,7 @@ func NewSubnetController(store storage.Storage) *SubnetController {
 	return &SubnetController{networkService: networkService}
 }
 
-func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) SubnetController(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Method, "SubnetController.SubnetController")
 
 	fmt.Println(r.URL.Path)
@@ -35,24 +35,24 @@ func (this *SubnetController) SubnetController(w http.ResponseWriter, r *http.Re
 	switch r.Method {
 	case "GET":
 		if path.Base(r.URL.Path) == "subnets" {
-			this.getAllTheSubnets(w, r)
+			controller.getAllTheSubnets(w, r)
 		} else {
-			this.getSubnet(w, r)
+			controller.getSubnet(w, r)
 		}
 	case "POST":
-		this.createSubnet(w, r)
+		controller.createSubnet(w, r)
 	// case "PUT":
-	// 	this.updateSubnet(w, r)
+	// 	controller.updateSubnet(w, r)
 	case "DELETE":
-		this.deleteSubnet(w, r)
+		controller.deleteSubnet(w, r)
 	case "OPTIONS":
-		this.returnOptions(w, r)
+		controller.returnOptions(w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (this *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("CommentController.getAllTheSubnets")
 
 	// get the request variables for the network ID
@@ -64,7 +64,7 @@ func (this *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	subnets := this.networkService.GetAllSubnets(networkId)
+	subnets := controller.networkService.GetAllSubnets(networkId)
 	body, err := json.Marshal(subnets)
 	if err != nil {
 		fmt.Println(err)
@@ -76,7 +76,7 @@ func (this *SubnetController) getAllTheSubnets(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (this *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.getSubnet")
 
 	// get the request variables for the network ID
@@ -98,7 +98,7 @@ func (this *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
-		subnet := this.networkService.GetSubnet(networkId, subnetId)
+		subnet := controller.networkService.GetSubnet(networkId, subnetId)
 		if subnet == nil {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
@@ -115,7 +115,7 @@ func (this *SubnetController) getSubnet(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) createSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.createSubnet")
 
 	// get the request variables for the network ID
@@ -136,7 +136,7 @@ func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(requestBody)
 	}
-	subnet := this.networkService.CreateSubnet(networkId, subnetRequest)
+	subnet := controller.networkService.CreateSubnet(networkId, subnetRequest)
 	if subnet == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -166,7 +166,7 @@ func (this *SubnetController) createSubnet(w http.ResponseWriter, r *http.Reques
 // 	w.WriteHeader(http.StatusOK)
 // }
 
-func (this *SubnetController) deleteSubnet(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) deleteSubnet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.deleteSubnet")
 
 	// get the request variables for the network ID
@@ -184,7 +184,7 @@ func (this *SubnetController) deleteSubnet(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	subnet := this.networkService.DeleteSubnet(networkId, subnetId)
+	subnet := controller.networkService.DeleteSubnet(networkId, subnetId)
 	if subnet == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -193,7 +193,7 @@ func (this *SubnetController) deleteSubnet(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 }
 
-func (this *SubnetController) returnOptions(w http.ResponseWriter, r *http.Request) {
+func (controller *SubnetController) returnOptions(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SubnetController.returnOptions")
 
 	w.WriteHeader(http.StatusOK)

@@ -10,17 +10,18 @@ import (
 type Network struct {
 	Name         string            `json:"name"`
 	ID           int               `json:"id"`
-	AddressSpace IPRange           `json:"cidr"`
+	AddressSpace IPRange           `json:"range"`
+	CIDR         string            `json:"cidr"`
 	Subnets      []*Subnet         `json:"subnets"`
 	Tags         map[string]string `json:"tags"`
 	CreatedAt    time.Time         `json:"createdAt"`
 	UpdatedAt    time.Time         `json:"updatedAt"`
 }
 
-func (this *Network) anyOverlaps(checkRange IPRange) bool {
-	for _, subnet := range this.Subnets {
+func (network *Network) anyOverlaps(checkRange IPRange) bool {
+	for _, subnet := range network.Subnets {
 		// if there is an overlap
-		if subnet.CIDR.StartAddress <= checkRange.EndAddress && subnet.CIDR.EndAddress >= checkRange.StartAddress {
+		if subnet.Range.StartAddress <= checkRange.EndAddress && subnet.Range.EndAddress >= checkRange.StartAddress {
 			fmt.Printf("Found an overlap with subnet: %s\n", subnet.Name)
 			return true
 		}
@@ -29,26 +30,26 @@ func (this *Network) anyOverlaps(checkRange IPRange) bool {
 	return false
 }
 
-func (this *Network) GetNextAvailableSubnet(mask uint32) *Subnet {
+func (network *Network) GetNextAvailableSubnet(mask uint32) *Subnet {
 	fmt.Println("> GetNextAvailableSubnet")
 	fmt.Printf("mask: %d\n", mask)
 	requestedSize := uint64(math.Pow(2, 32.0-float64(mask)))
 
 	checkRange := IPRange{
-		StartAddress: this.AddressSpace.StartAddress,
-		EndAddress:   this.AddressSpace.StartAddress + requestedSize - 1,
+		StartAddress: network.AddressSpace.StartAddress,
+		EndAddress:   network.AddressSpace.StartAddress + requestedSize - 1,
 	}
 	fmt.Println(checkRange)
 
 	// crude check for overlaps - could be optimised for sure!
-	for this.anyOverlaps(checkRange) {
+	for network.anyOverlaps(checkRange) {
 		checkRange.StartAddress += requestedSize
 		checkRange.EndAddress += requestedSize
 		fmt.Println("updated check range, trying again")
 		fmt.Println(checkRange)
 	}
 
-	if checkRange.StartAddress >= this.AddressSpace.EndAddress {
+	if checkRange.StartAddress >= network.AddressSpace.EndAddress {
 		fmt.Println("Passed end of address space")
 		fmt.Println("< GetNextAvailableSubnet")
 		return nil
@@ -56,11 +57,12 @@ func (this *Network) GetNextAvailableSubnet(mask uint32) *Subnet {
 
 	// to get this far we found an available subnet range
 	subnet := Subnet{
-		CIDR: IPRange{
+		Range: IPRange{
 			StartAddress: checkRange.StartAddress,
 			EndAddress:   checkRange.EndAddress,
 		},
 	}
+	subnet.CIDR = subnet.Range.String()
 
 	fmt.Println("< GetNextAvailableSubnet")
 	return &subnet

@@ -8,7 +8,8 @@ import (
 type Subnet struct {
 	ID        int         `json:"id"`
 	Name      string      `json:"name"`
-	CIDR      IPRange     `json:"cidr"`
+	Range     IPRange     `json:"range"`
+	CIDR      string      `json:"cidr"`
 	IPs       []IPAddress `json:"ips"`
 	CreatedAt time.Time   `json:"createdAt"`
 	UpdatedAt time.Time   `json:"updatedAt"`
